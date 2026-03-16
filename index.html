@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>AWS AIF-C01 — Banco de Preguntas</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF9900">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AIF-C01">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <section id="screen-home" class="screen active">
+    <header class="home-header">
+      <div class="home-logo">
+        <span class="logo-aws">AWS</span>
+        <div class="logo-text">
+          <span class="logo-cert">Certified AI Practitioner</span>
+          <span class="logo-code">AIF-C01</span>
+        </div>
+      </div>
+      <div class="home-tagline">Banco de Preguntas de Práctica</div>
+    </header>
+
+    <div id="resume-card" class="resume-card hidden">
+      <div class="resume-card-inner">
+        <span class="resume-icon">▶</span>
+        <div>
+          <div class="resume-title">Sesión en progreso</div>
+          <div id="resume-info" class="resume-info"></div>
+        </div>
+        <button id="btn-resume" class="btn-resume">Continuar</button>
+      </div>
+      <button id="btn-discard" class="btn-discard">Descartar sesión</button>
+    </div>
+
+    <div class="mode-grid">
+      <button class="mode-card" id="mode-all">
+        <span class="mode-icon">📚</span>
+        <span class="mode-title">Practicar Todo</span>
+        <span class="mode-desc">500+ preguntas mezcladas</span>
+      </button>
+      <button class="mode-card" id="mode-domain">
+        <span class="mode-icon">🎯</span>
+        <span class="mode-title">Por Dominio</span>
+        <span class="mode-desc">Elige un área específica</span>
+      </button>
+      <button class="mode-card" id="mode-missed">
+        <span class="mode-icon">🔁</span>
+        <span class="mode-title">Preguntas Falladas</span>
+        <span class="mode-desc">Repasa tus errores</span>
+      </button>
+      <button class="mode-card" id="mode-timed">
+        <span class="mode-icon">⏱️</span>
+        <span class="mode-title">Examen Simulado</span>
+        <span class="mode-desc">65 preguntas · 90 minutos</span>
+      </button>
+    </div>
+
+    <div class="home-footer">
+      <button class="btn-stats-link" id="btn-go-stats">📊 Ver Estadísticas</button>
+    </div>
+
+    <!-- Domain picker modal -->
+    <div id="domain-modal" class="modal hidden">
+      <div class="modal-box">
+        <h2 class="modal-title">Selecciona un Dominio</h2>
+        <div class="domain-list">
+          <button class="domain-btn" data-domain="1">
+            <span class="dbadge d1">D1</span>
+            <span>Fundamentos de IA y ML</span>
+            <span class="domain-pct">20%</span>
+          </button>
+          <button class="domain-btn" data-domain="2">
+            <span class="dbadge d2">D2</span>
+            <span>Fundamentos de IA Generativa</span>
+            <span class="domain-pct">24%</span>
+          </button>
+          <button class="domain-btn" data-domain="3">
+            <span class="dbadge d3">D3</span>
+            <span>Aplicaciones de Foundation Models</span>
+            <span class="domain-pct">28%</span>
+          </button>
+          <button class="domain-btn" data-domain="4">
+            <span class="dbadge d4">D4</span>
+            <span>IA Responsable</span>
+            <span class="domain-pct">14%</span>
+          </button>
+          <button class="domain-btn" data-domain="5">
+            <span class="dbadge d5">D5</span>
+            <span>Seguridad y Gobernanza</span>
+            <span class="domain-pct">14%</span>
+          </button>
+        </div>
+        <button class="btn-cancel" id="btn-domain-cancel">Cancelar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUIZ SCREEN ===== -->
+  <section id="screen-quiz" class="screen hidden">
+    <div class="quiz-topbar">
+      <button class="btn-back" id="btn-quiz-back" aria-label="Volver al inicio">←</button>
+      <div class="quiz-meta">
+        <span id="quiz-domain-badge" class="dbadge d1">D1</span>
+        <span id="quiz-progress" class="quiz-progress">1 / 50</span>
+      </div>
+      <div id="quiz-timer" class="quiz-timer hidden">00:00</div>
+      <button class="btn-flag" id="btn-flag" aria-label="Marcar pregunta" aria-pressed="false">🔖</button>
+    </div>
+    <div class="progress-bar-wrap">
+      <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+
+    <div class="quiz-body">
+      <div class="quiz-subdomain" id="quiz-subdomain"></div>
+      <div class="question-card" id="question-card" aria-live="polite">
+        <p id="question-text" class="question-text"></p>
+      </div>
+      <div class="options-grid" id="options-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===== EXPLANATION SCREEN ===== -->
+  <section id="screen-explain" class="screen hidden">
+    <div class="explain-topbar">
+      <span id="explain-result-badge" class="result-badge"></span>
+      <span id="explain-service-tag" class="service-tag"></span>
+    </div>
+
+    <div class="explain-body">
+      <div id="explain-options" class="options-grid explain-options"></div>
+      <div class="explain-box">
+        <h3 class="explain-title">Explicación</h3>
+        <p id="explain-text" class="explain-text"></p>
+      </div>
+    </div>
+
+    <div class="explain-footer">
+      <button class="btn-next" id="btn-next">Siguiente pregunta →</button>
+    </div>
+  </section>
+
+  <!-- ===== STATS SCREEN ===== -->
+  <section id="screen-stats" class="screen hidden">
+    <div class="stats-topbar">
+      <button class="btn-back" id="btn-stats-back">← Inicio</button>
+      <h1 class="stats-title">Estadísticas</h1>
+      <button class="btn-reset" id="btn-reset-stats">🗑️</button>
+    </div>
+
+    <div class="stats-body">
+      <!-- Overall -->
+      <div class="stats-card overall-card">
+        <div class="donut-wrap">
+          <canvas id="donut-canvas" width="120" height="120"></canvas>
+          <div class="donut-label">
+            <span id="donut-pct" class="donut-pct">0%</span>
+            <span class="donut-sub">correcto</span>
+          </div>
+        </div>
+        <div class="overall-numbers">
+          <div class="stat-num">
+            <span id="stat-total" class="num">0</span>
+            <span class="lbl">respondidas</span>
+          </div>
+          <div class="stat-num">
+            <span id="stat-correct" class="num green">0</span>
+            <span class="lbl">correctas</span>
+          </div>
+          <div class="stat-num">
+            <span id="stat-streak" class="num orange">0</span>
+            <span class="lbl">racha actual</span>
+          </div>
+          <div class="stat-num">
+            <span id="stat-best-streak" class="num">0</span>
+            <span class="lbl">mejor racha</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weakest domain highlight -->
+      <div id="weakest-card" class="stats-card weakest-card hidden">
+        <span class="weakest-icon">⚠️</span>
+        <div>
+          <div class="weakest-title">Área más débil</div>
+          <div id="weakest-name" class="weakest-name"></div>
+        </div>
+        <span id="weakest-pct" class="weakest-pct"></span>
+      </div>
+
+      <!-- Per domain -->
+      <div class="stats-card">
+        <h2 class="section-title">Por Dominio</h2>
+        <div id="domains-list" class="domains-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== REVIEW SCREEN ===== -->
+  <section id="screen-review" class="screen hidden">
+    <div class="review-topbar">
+      <button class="btn-back" id="btn-review-back">← Inicio</button>
+      <h1 class="review-title">Revisar</h1>
+    </div>
+    <div class="review-tabs">
+      <button class="review-tab active" id="tab-flagged" data-tab="flagged">🔖 Marcadas</button>
+      <button class="review-tab" id="tab-missed" data-tab="missed">❌ Falladas</button>
+    </div>
+    <div id="review-list" class="review-list"></div>
+    <div id="review-empty" class="review-empty hidden">
+      <span class="review-empty-icon">✅</span>
+      <p>No hay preguntas aquí aún.</p>
+    </div>
+  </section>
+
+  <!-- ===== SESSION END MODAL ===== -->
+  <div id="end-modal" class="modal hidden">
+    <div class="modal-box end-modal-box">
+      <div class="end-icon" id="end-icon">🎉</div>
+      <h2 class="end-title">Sesión completada</h2>
+      <div class="end-score" id="end-score"></div>
+      <div class="end-detail" id="end-detail"></div>
+      <div class="end-buttons">
+        <button class="btn-primary" id="btn-end-home">Ir al inicio</button>
+        <button class="btn-secondary" id="btn-end-stats">Ver estadísticas</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/questions_d1.js"></script>
+  <script src="js/questions_d2.js"></script>
+  <script src="js/questions_d2b.js"></script>
+  <script src="js/questions_d3.js"></script>
+  <script src="js/questions_d3b.js"></script>
+  <script src="js/questions_d4.js"></script>
+  <script src="js/questions_d4b.js"></script>
+  <script src="js/questions_d5.js"></script>
+  <script src="js/questions_d5b.js"></script>
+  <script src="js/questions.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
