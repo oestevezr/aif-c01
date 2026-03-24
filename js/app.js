@@ -52,6 +52,7 @@
   let elapsedSeconds = 0;
   let visHideTime = null;
   let currentQuestion = null;
+  let displayQuestion = null; // shuffled options + remapped answer key
 
   // ============================================================
   // HOME SCREEN
@@ -151,6 +152,19 @@
     currentQuestion = Q_MAP[qId];
     if (!currentQuestion) { renderQuestion(index + 1); return; }
 
+    // Shuffle options and remap answer key so correct answer isn't always the same letter
+    const shuffledOpts = shuffle(currentQuestion.options);
+    const keyMap = {}; // original key -> new key
+    const remappedOptions = shuffledOpts.map((opt, i) => {
+      const newKey = String.fromCharCode(65 + i); // A, B, C, D
+      keyMap[opt.key] = newKey;
+      return { key: newKey, text: opt.text };
+    });
+    displayQuestion = {
+      options: remappedOptions,
+      answer: keyMap[currentQuestion.answer]
+    };
+
     const total = session.questionIds.length;
     const pct = Math.round(index / total * 100);
 
@@ -176,7 +190,7 @@
     // options
     const grid = qs('#options-grid');
     grid.innerHTML = '';
-    currentQuestion.options.forEach(opt => {
+    displayQuestion.options.forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
       btn.dataset.key = opt.key;
@@ -187,8 +201,8 @@
   }
 
   function submitAnswer(selectedKey) {
-    if (!currentQuestion) return;
-    const isCorrect = selectedKey === currentQuestion.answer;
+    if (!currentQuestion || !displayQuestion) return;
+    const isCorrect = selectedKey === displayQuestion.answer;
     session.answers[currentQuestion.id] = selectedKey;
     Stats.saveSession(session);
     Stats.recordAnswer(currentQuestion.id, currentQuestion.domain, currentQuestion.subdomain, isCorrect);
@@ -230,13 +244,13 @@
     // service tag
     qs('#explain-service-tag').textContent = currentQuestion.service || '';
 
-    // re-render options with highlights
+    // re-render options with highlights (using shuffled display order)
     const grid = qs('#explain-options');
     grid.innerHTML = '';
-    currentQuestion.options.forEach(opt => {
+    displayQuestion.options.forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
-      if (opt.key === currentQuestion.answer) btn.classList.add('correct');
+      if (opt.key === displayQuestion.answer) btn.classList.add('correct');
       else if (opt.key === selectedKey) btn.classList.add('incorrect');
       btn.innerHTML = `<span class="key">${opt.key}.</span><span>${opt.text}</span>`;
       grid.appendChild(btn);
